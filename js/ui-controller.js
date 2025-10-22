@@ -544,6 +544,10 @@ class UIController {
         try {
             this.showProgress(0, 'Eşleştirme başlatılıyor...');
             
+            // Butonu devre dışı bırak
+            this.proceedBtn.disabled = true;
+            this.proceedBtn.textContent = 'İşleniyor...';
+            
             const options = this.getMatchingOptions();
             const result = await window.imageMatcher.match(
                 this.referenceImage,
@@ -560,6 +564,10 @@ class UIController {
             
         } catch (error) {
             this.showError(`Eşleştirme hatası: ${error.message}`);
+        } finally {
+            // Butonu tekrar aktif et
+            this.proceedBtn.disabled = false;
+            this.proceedBtn.textContent = 'Eşleştirmeyi Başlat';
         }
     }
 
@@ -585,9 +593,13 @@ class UIController {
      * @returns {Array} Ölçek listesi
      */
     generateScales(count) {
+        // Mobil cihazlarda daha az ölçek kullan
+        const isMobile = window.innerWidth < 768;
+        const actualCount = isMobile ? Math.min(count, 3) : count;
+        
         const scales = [];
-        for (let i = 0; i < count; i++) {
-            scales.push(0.5 + (i * 0.5) / (count - 1));
+        for (let i = 0; i < actualCount; i++) {
+            scales.push(0.5 + (i * 0.5) / (actualCount - 1));
         }
         return scales;
     }

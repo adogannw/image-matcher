@@ -11,6 +11,8 @@ class ImageMatcher {
         this.defaultThreshold = 0.6;
         this.maxImageSize = 2000;
         this.minImageSize = 800;
+        this.useWorker = typeof Worker !== 'undefined';
+        this.pendingTasks = new Map();
     }
 
     /**
@@ -201,6 +203,11 @@ class ImageMatcher {
         const results = [];
         const startTime = performance.now();
 
+        // Worker'ı başlat
+        if (this.useWorker && !this.worker) {
+            this.initializeWorker();
+        }
+
         for (let i = 0; i < scales.length; i++) {
             const scale = scales[i];
             const progress = ((i + 1) / scales.length) * 100;
@@ -236,6 +243,17 @@ class ImageMatcher {
      * @returns {Promise<Object|null>} Eşleştirme sonucu
      */
     async matchAtScale(targetImage, template, scale, threshold) {
+        if (this.useWorker && this.worker) {
+            return this.matchWithWorker(targetImage, template, scale, threshold);
+        } else {
+            return this.matchInMainThread(targetImage, template, scale, threshold);
+        }
+    }
+
+    /**
+     * Ana thread'de eşleştirme (fallback)
+     */
+    async matchInMainThread(targetImage, template, scale, threshold) {
         return new Promise((resolve) => {
             // Template'i ölçekle
             const scaledTemplate = this.scaleImageData(template, scale);
@@ -262,6 +280,25 @@ class ImageMatcher {
             } else {
                 resolve(null);
             }
+        });
+    }
+
+    /**
+     * Worker ile eşleştirme
+     */
+    async matchWithWorker(targetImage, template, scale, threshold) {
+        return new Promise((resolve, reject) => {
+            const taskId = Date.now() + Math.random();
+            
+            this.pendingTasks.set(taskId, { resolve, reject });
+            
+            this.worker.postMessage({
+                id: taskId,
+                targetImage: targetImage,
+                template: template,
+                scale: scale,
+                threshold: threshold
+            });
         });
     }
 
@@ -402,10 +439,51 @@ class ImageMatcher {
     }
 
     /**
+     * Worker'ı başlat
+     */
+    initializeWorker() {
+        try {
+            this.worker = new Worker('js/image-matcher-worker.js');
+            
+            this.worker.onmessage = (event) => {
+                const { id, result, error } = event.data;
+                const task = this.pendingTasks.get(id);
+                
+                if (task) {
+                    this.pendingTasks.delete(id);
+                    
+                    if (error) {
+                        task.reject(new Error(error));
+                    } else {
+                        task.resolve(result);
+                    }
+                }
+            };
+            
+            this.worker.onerror = (error) => {
+                console.error('Worker hatası:', error);
+                // Worker hatası durumunda ana thread'e geç
+                this.useWorker = false;
+                this.cleanup();
+            };
+            
+        } catch (error) {
+            console.warn('Worker başlatılamadı, ana thread kullanılacak:', error);
+            this.useWorker = false;
+        }
+    }
+
+    /**
      * İşlemi iptal et
      */
     cancel() {
         this.isProcessing = false;
+        
+        // Bekleyen task'ları iptal et
+        this.pendingTasks.forEach((task) => {
+            task.reject(new Error('İşlem iptal edildi'));
+        });
+        this.pendingTasks.clear();
     }
 
     /**
@@ -417,6 +495,7 @@ class ImageMatcher {
             this.worker.terminate();
             this.worker = null;
         }
+        this.pendingTasks.clear();
     }
 }
 
