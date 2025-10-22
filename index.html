@@ -29,48 +29,29 @@
 
     <!-- Main Content -->
     <main class="main" role="main">
-        <!-- Step 1: Image Upload -->
+        <!-- Step 1: Reference Image Upload -->
         <section class="step" id="step-upload" aria-labelledby="upload-heading">
-            <h2 id="upload-heading">1. Görselleri Yükleyin</h2>
+            <h2 id="upload-heading">1. Referans Görseli Yükleyin</h2>
             
-            <div class="image-upload-grid">
-                <!-- Reference Image -->
-                <div class="upload-area" id="ref-upload">
-                    <div class="upload-content">
-                        <div class="upload-icon">📷</div>
-                        <h3>Referans Görsel</h3>
-                        <p>Eşleştirilecek bölgeyi seçeceğiniz görsel</p>
-                        <input type="file" id="ref-file" accept="image/*" aria-describedby="ref-help">
-                        <label for="ref-file" class="upload-button">Dosya Seç</label>
-                        <div id="ref-help" class="help-text">JPG, PNG, WebP formatları desteklenir</div>
-                    </div>
-                    <div class="image-preview" id="ref-preview" style="display: none;">
-                        <canvas id="ref-canvas" aria-label="Referans görsel önizlemesi"></canvas>
-                        <div class="image-info" id="ref-info"></div>
-                    </div>
+            <div class="upload-area" id="ref-upload">
+                <div class="upload-content">
+                    <div class="upload-icon">📷</div>
+                    <h3>Referans Görsel</h3>
+                    <p>Eşleştirilecek bölgeyi seçeceğiniz görsel</p>
+                    <input type="file" id="ref-file" accept="image/*" aria-describedby="ref-help">
+                    <label for="ref-file" class="upload-button">Dosya Seç</label>
+                    <div id="ref-help" class="help-text">JPG, PNG, WebP formatları desteklenir</div>
                 </div>
-
-                <!-- Target Image -->
-                <div class="upload-area" id="target-upload">
-                    <div class="upload-content">
-                        <div class="upload-icon">🎯</div>
-                        <h3>Hedef Görsel</h3>
-                        <p>Referans bölgenin aranacağı görsel</p>
-                        <input type="file" id="target-file" accept="image/*" aria-describedby="target-help">
-                        <label for="target-file" class="upload-button">Dosya Seç</label>
-                        <div id="target-help" class="help-text">JPG, PNG, WebP formatları desteklenir</div>
-                    </div>
-                    <div class="image-preview" id="target-preview" style="display: none;">
-                        <canvas id="target-canvas" aria-label="Hedef görsel önizlemesi"></canvas>
-                        <div class="image-info" id="target-info"></div>
-                    </div>
+                <div class="image-preview" id="ref-preview" style="display: none;">
+                    <canvas id="ref-canvas" aria-label="Referans görsel önizlemesi"></canvas>
+                    <div class="image-info" id="ref-info"></div>
                 </div>
             </div>
         </section>
 
         <!-- Step 2: Selection -->
         <section class="step" id="step-selection" style="display: none;" aria-labelledby="selection-heading">
-            <h2 id="selection-heading">2. Referans Bölgeyi Seçin</h2>
+            <h2 id="selection-heading">2. Eşleştirilecek Bölgeyi Seçin</h2>
             
             <div class="selection-container">
                 <div class="selection-canvas-wrapper">
@@ -116,20 +97,44 @@
                     <div class="control-group">
                         <div class="help-text">
                             <strong>İpucu:</strong> Küçük ve belirgin bir bölge seçin. 
-                            Bu bölge ana görselde aranacak.
+                            Bu bölge hedef görselde aranacak.
                         </div>
                     </div>
                     
                     <div class="control-group">
-                        <button id="proceed-to-match" class="button primary" disabled>Eşleştirmeyi Başlat</button>
+                        <button id="proceed-to-target" class="button primary" disabled>Hedef Görseli Yükle</button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Step 3: Matching -->
+        <!-- Step 3: Target Image Upload -->
+        <section class="step" id="step-target-upload" style="display: none;" aria-labelledby="target-upload-heading">
+            <h2 id="target-upload-heading">3. Hedef Görseli Yükleyin</h2>
+            
+            <div class="upload-area" id="target-upload">
+                <div class="upload-content">
+                    <div class="upload-icon">🎯</div>
+                    <h3>Hedef Görsel</h3>
+                    <p>Referans bölgenin aranacağı görsel</p>
+                    <input type="file" id="target-file" accept="image/*" aria-describedby="target-help">
+                    <label for="target-file" class="upload-button">Dosya Seç</label>
+                    <div id="target-help" class="help-text">JPG, PNG, WebP formatları desteklenir</div>
+                </div>
+                <div class="image-preview" id="target-preview" style="display: none;">
+                    <canvas id="target-canvas" aria-label="Hedef görsel önizlemesi"></canvas>
+                    <div class="image-info" id="target-info"></div>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <button id="start-matching" class="button primary" disabled>Eşleştirmeyi Başlat</button>
+            </div>
+        </section>
+
+        <!-- Step 4: Matching -->
         <section class="step" id="step-matching" style="display: none;" aria-labelledby="matching-heading">
-            <h2 id="matching-heading">3. Eşleştirme Sonuçları</h2>
+            <h2 id="matching-heading">4. Eşleştirme Sonuçları</h2>
             
             <div class="matching-container">
                 <div class="progress-section">

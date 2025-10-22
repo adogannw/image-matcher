@@ -49,7 +49,8 @@ class UIController {
         this.keyboardModeCheckbox = document.getElementById('keyboard-mode');
         this.clearSelectionBtn = document.getElementById('clear-selection');
         this.autoSelectBtn = document.getElementById('auto-select');
-        this.proceedBtn = document.getElementById('proceed-to-match');
+        this.proceedToTargetBtn = document.getElementById('proceed-to-target');
+        this.startMatchingBtn = document.getElementById('start-matching');
 
         // Matching elements
         this.progressFill = document.getElementById('progress-fill');
@@ -110,7 +111,8 @@ class UIController {
         // Control buttons
         this.clearSelectionBtn.addEventListener('click', () => this.clearSelection());
         this.autoSelectBtn.addEventListener('click', () => this.autoSelect());
-        this.proceedBtn.addEventListener('click', () => this.proceedToMatching());
+        this.proceedToTargetBtn.addEventListener('click', () => this.proceedToTargetUpload());
+        this.startMatchingBtn.addEventListener('click', () => this.startMatching());
 
         // Result buttons
         this.downloadBtn.addEventListener('click', () => this.downloadResult());
@@ -178,13 +180,16 @@ class UIController {
                 this.referenceImage = image;
                 this.displayImage(image, this.refCanvas, this.refPreview);
                 this.updateImageInfo(image, 'ref-info');
+                this.showStep('selection');
+                this.showStatus('Referans görsel yüklendi. Eşleştirilecek bölgeyi seçin.');
             } else {
                 this.targetImage = image;
                 this.displayImage(image, this.targetCanvas, this.targetPreview);
                 this.updateImageInfo(image, 'target-info');
+                this.startMatchingBtn.disabled = false;
+                this.showStatus('Hedef görsel yüklendi. Eşleştirmeyi başlatabilirsiniz.');
             }
 
-            this.checkUploadComplete();
             this.hideStatus();
 
         } catch (error) {
@@ -278,10 +283,12 @@ class UIController {
     /**
      * Yükleme tamamlanma kontrolü
      */
-    checkUploadComplete() {
-        if (this.referenceImage && this.targetImage) {
-            this.showStep('selection');
-            this.setupSelectionCanvas();
+    /**
+     * Hedef görsel yükleme adımına geç
+     */
+    proceedToTargetUpload() {
+        if (this.selection) {
+            this.showStep('target-upload');
         }
     }
 
@@ -468,8 +475,8 @@ class UIController {
         }
         
         this.selection = { x, y, width, height };
-        this.proceedBtn.disabled = false;
-        this.showStatus('Seçim tamamlandı. Eşleştirmeyi başlatabilirsiniz.');
+        this.proceedToTargetBtn.disabled = false;
+        this.showStatus('Seçim tamamlandı. Hedef görseli yükleyebilirsiniz.');
     }
 
     /**
@@ -481,7 +488,7 @@ class UIController {
         this.selectionEnd = null;
         this.selectionRect.style.width = '0px';
         this.selectionRect.style.height = '0px';
-        this.proceedBtn.disabled = true;
+        this.proceedToTargetBtn.disabled = true;
         this.selectionStart.textContent = '0, 0';
         this.selectionEnd.textContent = '0, 0';
         this.selectionSize.textContent = '0 × 0';
@@ -545,8 +552,8 @@ class UIController {
             this.showProgress(0, 'Eşleştirme başlatılıyor...');
             
             // Butonu devre dışı bırak
-            this.proceedBtn.disabled = true;
-            this.proceedBtn.textContent = 'İşleniyor...';
+            this.startMatchingBtn.disabled = true;
+            this.startMatchingBtn.textContent = 'İşleniyor...';
             
             const options = this.getMatchingOptions();
             const result = await window.imageMatcher.match(
@@ -566,8 +573,8 @@ class UIController {
             this.showError(`Eşleştirme hatası: ${error.message}`);
         } finally {
             // Butonu tekrar aktif et
-            this.proceedBtn.disabled = false;
-            this.proceedBtn.textContent = 'Eşleştirmeyi Başlat';
+            this.startMatchingBtn.disabled = false;
+            this.startMatchingBtn.textContent = 'Eşleştirmeyi Başlat';
         }
     }
 
