@@ -59,8 +59,6 @@ class UIController {
         this.progressText = document.getElementById('progress-text');
         this.resultContainer = document.getElementById('result-container');
         this.resultCanvas = document.getElementById('result-canvas');
-        this.matchRect = document.getElementById('match-rect');
-        this.matchScore = document.getElementById('match-score');
         this.detailScore = document.getElementById('detail-score');
         this.detailLocation = document.getElementById('detail-location');
         this.detailTime = document.getElementById('detail-time');
@@ -666,10 +664,10 @@ class UIController {
      */
     displayResult(result) {
         console.log('displayResult çağrıldı:', result);
-        const match = result.match;
+        const matches = result.matches || [result.bestMatch];
         
-        if (!match) {
-            console.error('Match bulunamadı:', result);
+        if (!matches || matches.length === 0) {
+            console.error('Matches bulunamadı:', result);
             return;
         }
         
@@ -703,36 +701,49 @@ class UIController {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(image, 0, 0, width, height);
         
-        // Eşleşme dikdörtgenini çiz - tüm alanı kapsayacak şekilde
+        // Canvas üzerinde tüm eşleşmeleri çiz
         const scaleX = width / image.width;
         const scaleY = height / image.height;
         
-        // Dikdörtgenin tam boyutlarını hesapla
-        const rectX = match.x * scaleX;
-        const rectY = match.y * scaleY;
-        const rectWidth = match.width * scaleX;
-        const rectHeight = match.height * scaleY;
+        // En iyi eşleşmeyi bul
+        const bestMatch = matches.reduce((best, current) => 
+            current.score > best.score ? current : best
+        );
         
-        this.matchRect.style.left = `${rectX}px`;
-        this.matchRect.style.top = `${rectY}px`;
-        this.matchRect.style.width = `${rectWidth}px`;
-        this.matchRect.style.height = `${rectHeight}px`;
+        // Tüm eşleşmeleri çiz
+        matches.forEach((match, index) => {
+            const rectX = match.x * scaleX;
+            const rectY = match.y * scaleY;
+            const rectWidth = match.width * scaleX;
+            const rectHeight = match.height * scaleY;
+            
+            // Dikdörtgen çiz
+            ctx.strokeStyle = match === bestMatch ? '#dc2626' : '#6b7280';
+            ctx.lineWidth = match === bestMatch ? 3 : 2;
+            ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+            
+            // Skor etiketi çiz (sağ alt köşede)
+            const scorePercent = Math.round(match.score * 100);
+            const scoreX = rectX + rectWidth - 5;
+            const scoreY = rectY + rectHeight - 5;
+            
+            // Arka plan
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            const textWidth = ctx.measureText(`${scorePercent}%`).width + 8;
+            ctx.fillRect(scoreX - textWidth, scoreY - 16, textWidth, 16);
+            
+            // Metin
+            ctx.fillStyle = 'white';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${scorePercent}%`, scoreX - textWidth + 4, scoreY - 4);
+        });
         
-        // Skor etiketini dikdörtgenin sağ üst köşesine yerleştir
-        const scoreX = rectX + rectWidth - 60; // Sağ kenardan 60px içeri
-        const scoreY = rectY + 5; // Üst kenardan 5px aşağı
-        
-        this.matchScore.style.left = `${scoreX}px`;
-        this.matchScore.style.top = `${scoreY}px`;
-        this.matchScore.style.right = 'auto';
-        
-        // Skor bilgilerini güncelle
-        const scorePercent = Math.round(match.score * 100);
-        this.matchScore.textContent = `${scorePercent}%`;
+        // En iyi eşleşme için detay bilgilerini güncelle
+        const scorePercent = Math.round(bestMatch.score * 100);
         this.detailScore.textContent = `${scorePercent}%`;
-        this.detailLocation.textContent = `${match.x}, ${match.y}`;
-        this.detailTime.textContent = `${Math.round(match.processingTime)}ms`;
-        this.detailScale.textContent = `${match.scale.toFixed(2)}x`;
+        this.detailLocation.textContent = `${bestMatch.x}, ${bestMatch.y}`;
+        this.detailTime.textContent = `${Math.round(bestMatch.processingTime)}ms`;
+        this.detailScale.textContent = `${bestMatch.scale.toFixed(2)}x`;
         
         this.resultContainer.style.display = 'block';
         this.hideProgress();

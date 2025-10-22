@@ -52,17 +52,17 @@ class ImageMatcher {
             const results = await this.multiScaleMatch(processedTarget, template, scales, threshold);
             console.log('Eşleştirme sonuçları:', results);
 
-            // En iyi sonucu seç
-            const bestResult = this.selectBestResult(results);
-            console.log('En iyi sonuç:', bestResult);
+            // Tüm sonuçları döndür (birden fazla eşleşme için)
+            console.log('Tüm eşleştirme sonuçları:', results);
 
             return {
                 success: true,
-                match: bestResult,
+                matches: results, // Tüm eşleşmeleri döndür
+                bestMatch: this.selectBestResult(results), // En iyi sonuç
                 template: template,
                 processedTarget: processedTarget,
                 scales: scales,
-                processingTime: bestResult.processingTime
+                processingTime: results.length > 0 ? results[0].processingTime : 0
             };
 
         } catch (error) {
