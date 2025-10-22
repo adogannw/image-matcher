@@ -183,6 +183,7 @@ class UIController {
                 this.displayImage(image, this.refCanvas, this.refPreview);
                 this.updateImageInfo(image, 'ref-info');
                 this.showStep('selection');
+                this.setupSelectionCanvas();
                 this.showStatus('Referans görsel yüklendi. Eşleştirilecek bölgeyi seçin.');
             } else {
                 this.targetImage = image;
@@ -301,6 +302,11 @@ class UIController {
         const canvas = this.selectionCanvas;
         const image = this.referenceImage;
         
+        if (!canvas || !image) {
+            console.error('Canvas veya image bulunamadı:', { canvas, image });
+            return;
+        }
+        
         const maxWidth = 600;
         const maxHeight = 400;
         
@@ -316,6 +322,11 @@ class UIController {
         
         const ctx = canvas.getContext('2d');
         ctx.drawImage(image, 0, 0, width, height);
+        
+        // Canvas'ı görünür yap
+        canvas.style.display = 'block';
+        
+        console.log('Selection canvas hazırlandı:', { width, height, imageSize: { width: image.width, height: image.height } });
         
         // Canvas'a odak ver
         canvas.focus();
