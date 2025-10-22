@@ -50,9 +50,11 @@ class ImageMatcher {
 
             // Çoklu ölçek eşleştirme
             const results = await this.multiScaleMatch(processedTarget, template, scales, threshold);
+            console.log('Eşleştirme sonuçları:', results);
 
             // En iyi sonucu seç
             const bestResult = this.selectBestResult(results);
+            console.log('En iyi sonuç:', bestResult);
 
             return {
                 success: true,
@@ -219,6 +221,7 @@ class ImageMatcher {
 
             try {
                 const result = await this.matchAtScale(targetImage, template, scale, threshold);
+                console.log(`Ölçek ${scale} sonucu:`, result);
                 if (result) {
                     results.push({
                         ...result,
