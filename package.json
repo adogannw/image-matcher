@@ -1,0 +1,45 @@
+{
+  "name": "image-matcher",
+  "version": "1.0.0",
+  "description": "Gizlilik odaklı, istemci tarafı görüntü eşleştirme uygulaması",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "http-server public -p 8080 -o",
+    "dev": "http-server public -p 8080 -o --cors",
+    "test": "echo \"Tests are run in browser\" && exit 0",
+    "build": "echo \"No build step required for vanilla JS\" && exit 0",
+    "deploy": "gh-pages -d public"
+  },
+  "keywords": [
+    "image-matching",
+    "computer-vision",
+    "privacy",
+    "pwa",
+    "client-side",
+    "template-matching",
+    "opencv",
+    "javascript"
+  ],
+  "author": "Görüntü Eşleştirici",
+  "license": "MIT",
+  "homepage": "https://username.github.io/image-matcher",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/image-matcher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/image-matcher/issues"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "gh-pages": "^6.1.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

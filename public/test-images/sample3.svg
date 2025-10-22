@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <radialGradient id="radial1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </radialGradient>
+    <pattern id="stripes" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="#f3f4f6"/>
+      <rect width="20" height="4" fill="#d1d5db"/>
+    </pattern>
+  </defs>
+  
+  <!-- Arka plan -->
+  <rect width="400" height="300" fill="#f9fafb"/>
+  <rect width="400" height="300" fill="url(#stripes)"/>
+  
+  <!-- Kompleks şekiller -->
+  <ellipse cx="100" cy="100" rx="60" ry="40" fill="url(#radial1)" stroke="#d97706" stroke-width="3"/>
+  <rect x="200" y="60" width="80" height="80" fill="#8b5cf6" stroke="#7c3aed" stroke-width="3" rx="15"/>
+  <polygon points="350,100 320,160 380,160" fill="#ef4444" stroke="#dc2626" stroke-width="3"/>
+  
+  <!-- İç şekiller -->
+  <circle cx="100" cy="100" r="20" fill="#fef3c7" opacity="0.9"/>
+  <rect x="220" y="80" width="40" height="40" fill="#ddd6fe" rx="8"/>
+  <circle cx="350" cy="130" r="15" fill="#fecaca"/>
+  
+  <!-- Metin -->
+  <text x="200" y="200" font-family="Arial, sans-serif" font-size="26" font-weight="bold" text-anchor="middle" fill="#1f2937">
+    Test Görsel 3
+  </text>
+  <text x="200" y="225" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#6b7280">
+    Kompleks şekiller ve iç detaylar
+  </text>
+  
+  <!-- Küçük detaylar -->
+  <circle cx="50" cy="50" r="5" fill="#3b82f6"/>
+  <circle cx="350" cy="50" r="5" fill="#10b981"/>
+  <circle cx="50" cy="250" r="5" fill="#f59e0b"/>
+  <circle cx="350" cy="250" r="5" fill="#ef4444"/>
+  
+  <!-- Çizgiler ve bağlantılar -->
+  <path d="M 50 50 Q 200 30 350 50" stroke="#9ca3af" stroke-width="2" fill="none"/>
+  <path d="M 50 250 Q 200 270 350 250" stroke="#9ca3af" stroke-width="2" fill="none"/>
+  
+  <!-- Dekoratif çerçeve -->
+  <rect x="10" y="10" width="380" height="280" fill="none" stroke="#d1d5db" stroke-width="2" rx="10"/>
+</svg>

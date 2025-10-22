@@ -1,0 +1,835 @@
+/**
+ * UI Kontrolcüsü
+ * Kullanıcı arayüzü etkileşimlerini yönetir
+ */
+
+class UIController {
+    constructor() {
+        this.currentStep = 'upload';
+        this.referenceImage = null;
+        this.targetImage = null;
+        this.selection = null;
+        this.isSelecting = false;
+        this.selectionStart = null;
+        this.selectionEnd = null;
+        this.keyboardMode = false;
+        
+        this.initializeElements();
+        this.bindEvents();
+        this.loadSettings();
+    }
+
+    /**
+     * DOM elementlerini başlat
+     */
+    initializeElements() {
+        // Step containers
+        this.steps = {
+            upload: document.getElementById('step-upload'),
+            selection: document.getElementById('step-selection'),
+            matching: document.getElementById('step-matching')
+        };
+
+        // Upload elements
+        this.refFileInput = document.getElementById('ref-file');
+        this.targetFileInput = document.getElementById('target-file');
+        this.refPreview = document.getElementById('ref-preview');
+        this.targetPreview = document.getElementById('target-preview');
+        this.refCanvas = document.getElementById('ref-canvas');
+        this.targetCanvas = document.getElementById('target-canvas');
+
+        // Selection elements
+        this.selectionCanvas = document.getElementById('selection-canvas');
+        this.selectionRect = document.getElementById('selection-rect');
+        this.selectionInfo = document.getElementById('selection-info');
+        this.selectionCoords = document.getElementById('selection-coords');
+        this.selectionSize = document.getElementById('selection-size');
+        this.keyboardModeCheckbox = document.getElementById('keyboard-mode');
+        this.clearSelectionBtn = document.getElementById('clear-selection');
+        this.autoSelectBtn = document.getElementById('auto-select');
+        this.proceedBtn = document.getElementById('proceed-to-match');
+
+        // Matching elements
+        this.progressFill = document.getElementById('progress-fill');
+        this.progressText = document.getElementById('progress-text');
+        this.resultContainer = document.getElementById('result-container');
+        this.resultCanvas = document.getElementById('result-canvas');
+        this.matchRect = document.getElementById('match-rect');
+        this.matchScore = document.getElementById('match-score');
+        this.detailScore = document.getElementById('detail-score');
+        this.detailLocation = document.getElementById('detail-location');
+        this.detailTime = document.getElementById('detail-time');
+        this.detailScale = document.getElementById('detail-scale');
+        this.downloadBtn = document.getElementById('download-result');
+        this.newMatchBtn = document.getElementById('new-match');
+
+        // Settings elements
+        this.settingsPanel = document.getElementById('settings-panel');
+        this.settingsToggle = document.getElementById('settings-toggle');
+        this.targetSizeSlider = document.getElementById('target-size');
+        this.targetSizeValue = document.getElementById('target-size-value');
+        this.scaleCountSlider = document.getElementById('scale-count');
+        this.scaleCountValue = document.getElementById('scale-count-value');
+        this.thresholdSlider = document.getElementById('threshold');
+        this.thresholdValue = document.getElementById('threshold-value');
+        this.rotationCheckbox = document.getElementById('rotation-support');
+        this.apiModeCheckbox = document.getElementById('api-mode');
+        this.apiSettings = document.getElementById('api-settings');
+        this.apiUrlInput = document.getElementById('api-url');
+
+        // Message elements
+        this.statusMessages = document.getElementById('status-messages');
+        this.errorMessages = document.getElementById('error-messages');
+    }
+
+    /**
+     * Event listener'ları bağla
+     */
+    bindEvents() {
+        // File upload events
+        this.refFileInput.addEventListener('change', (e) => this.handleFileUpload(e, 'reference'));
+        this.targetFileInput.addEventListener('change', (e) => this.handleFileUpload(e, 'target'));
+
+        // Drag and drop events
+        this.bindDragAndDrop();
+
+        // Selection events
+        this.selectionCanvas.addEventListener('mousedown', (e) => this.startSelection(e));
+        this.selectionCanvas.addEventListener('mousemove', (e) => this.updateSelection(e));
+        this.selectionCanvas.addEventListener('mouseup', (e) => this.endSelection(e));
+        this.selectionCanvas.addEventListener('touchstart', (e) => this.startSelection(e));
+        this.selectionCanvas.addEventListener('touchmove', (e) => this.updateSelection(e));
+        this.selectionCanvas.addEventListener('touchend', (e) => this.endSelection(e));
+
+        // Keyboard events
+        this.selectionCanvas.addEventListener('keydown', (e) => this.handleKeyboardSelection(e));
+        this.keyboardModeCheckbox.addEventListener('change', (e) => this.toggleKeyboardMode(e.target.checked));
+
+        // Control buttons
+        this.clearSelectionBtn.addEventListener('click', () => this.clearSelection());
+        this.autoSelectBtn.addEventListener('click', () => this.autoSelect());
+        this.proceedBtn.addEventListener('click', () => this.proceedToMatching());
+
+        // Result buttons
+        this.downloadBtn.addEventListener('click', () => this.downloadResult());
+        this.newMatchBtn.addEventListener('click', () => this.startNewMatch());
+
+        // Settings events
+        this.settingsToggle.addEventListener('click', () => this.toggleSettings());
+        this.targetSizeSlider.addEventListener('input', (e) => this.updateTargetSize(e.target.value));
+        this.scaleCountSlider.addEventListener('input', (e) => this.updateScaleCount(e.target.value));
+        this.thresholdSlider.addEventListener('input', (e) => this.updateThreshold(e.target.value));
+        this.apiModeCheckbox.addEventListener('change', (e) => this.toggleApiMode(e.target.checked));
+
+        // Prevent default drag behaviors
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => e.preventDefault());
+    }
+
+    /**
+     * Drag and drop desteği
+     */
+    bindDragAndDrop() {
+        const uploadAreas = document.querySelectorAll('.upload-area');
+        
+        uploadAreas.forEach(area => {
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const isReference = area.id === 'ref-upload';
+                        this.handleFileUpload({ target: { files: [file] } }, isReference ? 'reference' : 'target');
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * Dosya yükleme işlemi
+     * @param {Event} event - File input event
+     * @param {string} type - 'reference' veya 'target'
+     */
+    async handleFileUpload(event, type) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            this.showStatus(`${type === 'reference' ? 'Referans' : 'Hedef'} görsel yükleniyor...`);
+            
+            const image = await this.loadImage(file);
+            
+            if (type === 'reference') {
+                this.referenceImage = image;
+                this.displayImage(image, this.refCanvas, this.refPreview);
+                this.updateImageInfo(image, 'ref-info');
+            } else {
+                this.targetImage = image;
+                this.displayImage(image, this.targetCanvas, this.targetPreview);
+                this.updateImageInfo(image, 'target-info');
+            }
+
+            this.checkUploadComplete();
+            this.hideStatus();
+
+        } catch (error) {
+            this.showError(`Görsel yükleme hatası: ${error.message}`);
+        }
+    }
+
+    /**
+     * Görsel yükleme
+     * @param {File} file - Dosya
+     * @returns {Promise<HTMLImageElement>} Yüklenen görsel
+     */
+    loadImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Geçersiz görsel dosyası'));
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    /**
+     * Görseli canvas'a çiz
+     * @param {HTMLImageElement} image - Görsel
+     * @param {HTMLCanvasElement} canvas - Canvas
+     * @param {HTMLElement} preview - Preview container
+     */
+    displayImage(image, canvas, preview) {
+        const maxWidth = 400;
+        const maxHeight = 300;
+        
+        let { width, height } = this.calculateDisplaySize(
+            image.width, 
+            image.height, 
+            maxWidth, 
+            maxHeight
+        );
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+        
+        preview.style.display = 'block';
+    }
+
+    /**
+     * Görsel bilgilerini güncelle
+     * @param {HTMLImageElement} image - Görsel
+     * @param {string} infoId - Info element ID
+     */
+    updateImageInfo(image, infoId) {
+        const info = document.getElementById(infoId);
+        info.textContent = `${image.width}×${image.height}px`;
+    }
+
+    /**
+     * Görüntü boyutunu hesapla
+     * @param {number} width - Orijinal genişlik
+     * @param {number} height - Orijinal yükseklik
+     * @param {number} maxWidth - Maksimum genişlik
+     * @param {number} maxHeight - Maksimum yükseklik
+     * @returns {Object} Yeni boyutlar
+     */
+    calculateDisplaySize(width, height, maxWidth, maxHeight) {
+        const aspectRatio = width / height;
+        
+        // Orijinal oranları koruyarak boyutları hesapla
+        let newWidth = width;
+        let newHeight = height;
+        
+        // Genişlik sınırını kontrol et
+        if (newWidth > maxWidth) {
+            newWidth = maxWidth;
+            newHeight = newWidth / aspectRatio;
+        }
+        
+        // Yükseklik sınırını kontrol et
+        if (newHeight > maxHeight) {
+            newHeight = maxHeight;
+            newWidth = newHeight * aspectRatio;
+        }
+        
+        return {
+            width: Math.round(newWidth),
+            height: Math.round(newHeight)
+        };
+    }
+
+    /**
+     * Yükleme tamamlanma kontrolü
+     */
+    checkUploadComplete() {
+        if (this.referenceImage && this.targetImage) {
+            this.showStep('selection');
+            this.setupSelectionCanvas();
+        }
+    }
+
+    /**
+     * Seçim canvas'ını hazırla
+     */
+    setupSelectionCanvas() {
+        const canvas = this.selectionCanvas;
+        const image = this.referenceImage;
+        
+        const maxWidth = 600;
+        const maxHeight = 400;
+        
+        const { width, height } = this.calculateDisplaySize(
+            image.width, 
+            image.height, 
+            maxWidth, 
+            maxHeight
+        );
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+        
+        // Canvas'a odak ver
+        canvas.focus();
+    }
+
+    /**
+     * Seçim başlatma
+     * @param {Event} event - Mouse/touch event
+     */
+    startSelection(event) {
+        if (this.keyboardMode) return;
+        
+        event.preventDefault();
+        this.isSelecting = true;
+        
+        const rect = this.selectionCanvas.getBoundingClientRect();
+        const scaleX = this.referenceImage.width / this.selectionCanvas.width;
+        const scaleY = this.referenceImage.height / this.selectionCanvas.height;
+        
+        const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+        const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+        
+        this.selectionStart = {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+        
+        this.selectionEnd = { ...this.selectionStart };
+        this.updateSelectionDisplay();
+    }
+
+    /**
+     * Seçim güncelleme
+     * @param {Event} event - Mouse/touch event
+     */
+    updateSelection(event) {
+        if (!this.isSelecting || this.keyboardMode) return;
+        
+        event.preventDefault();
+        
+        const rect = this.selectionCanvas.getBoundingClientRect();
+        const scaleX = this.referenceImage.width / this.selectionCanvas.width;
+        const scaleY = this.referenceImage.height / this.selectionCanvas.height;
+        
+        const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+        const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+        
+        this.selectionEnd = {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+        
+        this.updateSelectionDisplay();
+    }
+
+    /**
+     * Seçim bitirme
+     * @param {Event} event - Mouse/touch event
+     */
+    endSelection(event) {
+        if (!this.isSelecting || this.keyboardMode) return;
+        
+        event.preventDefault();
+        this.isSelecting = false;
+        
+        this.finalizeSelection();
+    }
+
+    /**
+     * Klavye ile seçim
+     * @param {KeyboardEvent} event - Klavye event
+     */
+    handleKeyboardSelection(event) {
+        if (!this.keyboardMode) return;
+        
+        const step = 10;
+        const rect = this.selectionCanvas.getBoundingClientRect();
+        const scaleX = this.referenceImage.width / this.selectionCanvas.width;
+        const scaleY = this.referenceImage.height / this.selectionCanvas.height;
+        
+        if (!this.selectionStart) {
+            this.selectionStart = {
+                x: this.referenceImage.width / 2,
+                y: this.referenceImage.height / 2
+            };
+            this.selectionEnd = { ...this.selectionStart };
+        }
+        
+        switch (event.key) {
+            case 'ArrowLeft':
+                this.selectionEnd.x = Math.max(0, this.selectionEnd.x - step);
+                break;
+            case 'ArrowRight':
+                this.selectionEnd.x = Math.min(this.referenceImage.width, this.selectionEnd.x + step);
+                break;
+            case 'ArrowUp':
+                this.selectionEnd.y = Math.max(0, this.selectionEnd.y - step);
+                break;
+            case 'ArrowDown':
+                this.selectionEnd.y = Math.min(this.referenceImage.height, this.selectionEnd.y + step);
+                break;
+            case 'Enter':
+            case ' ':
+                this.finalizeSelection();
+                return;
+            default:
+                return;
+        }
+        
+        event.preventDefault();
+        this.updateSelectionDisplay();
+    }
+
+    /**
+     * Seçim görüntüsünü güncelle
+     */
+    updateSelectionDisplay() {
+        if (!this.selectionStart || !this.selectionEnd) return;
+        
+        const x = Math.min(this.selectionStart.x, this.selectionEnd.x);
+        const y = Math.min(this.selectionStart.y, this.selectionEnd.y);
+        const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
+        const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
+        
+        const scaleX = this.selectionCanvas.width / this.referenceImage.width;
+        const scaleY = this.selectionCanvas.height / this.referenceImage.height;
+        
+        this.selectionRect.style.left = `${x * scaleX}px`;
+        this.selectionRect.style.top = `${y * scaleY}px`;
+        this.selectionRect.style.width = `${width * scaleX}px`;
+        this.selectionRect.style.height = `${height * scaleY}px`;
+        
+        this.selectionCoords.textContent = `${Math.round(x)},${Math.round(y)} - ${Math.round(x + width)},${Math.round(y + height)}`;
+        this.selectionSize.textContent = `${Math.round(width)}×${Math.round(height)}`;
+    }
+
+    /**
+     * Seçimi tamamla
+     */
+    finalizeSelection() {
+        if (!this.selectionStart || !this.selectionEnd) return;
+        
+        const x = Math.min(this.selectionStart.x, this.selectionEnd.x);
+        const y = Math.min(this.selectionStart.y, this.selectionEnd.y);
+        const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
+        const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
+        
+        if (width < 10 || height < 10) {
+            this.showError('Seçim çok küçük. En az 10×10 piksel seçin.');
+            return;
+        }
+        
+        this.selection = { x, y, width, height };
+        this.proceedBtn.disabled = false;
+        this.showStatus('Seçim tamamlandı. Eşleştirmeyi başlatabilirsiniz.');
+    }
+
+    /**
+     * Seçimi temizle
+     */
+    clearSelection() {
+        this.selection = null;
+        this.selectionStart = null;
+        this.selectionEnd = null;
+        this.selectionRect.style.width = '0px';
+        this.selectionRect.style.height = '0px';
+        this.proceedBtn.disabled = true;
+        this.selectionCoords.textContent = '0,0 - 0,0';
+        this.selectionSize.textContent = '0×0';
+    }
+
+    /**
+     * Otomatik seçim
+     */
+    autoSelect() {
+        const image = this.referenceImage;
+        const centerX = image.width / 2;
+        const centerY = image.height / 2;
+        const size = Math.min(image.width, image.height) * 0.3;
+        
+        this.selectionStart = {
+            x: centerX - size / 2,
+            y: centerY - size / 2
+        };
+        this.selectionEnd = {
+            x: centerX + size / 2,
+            y: centerY + size / 2
+        };
+        
+        this.finalizeSelection();
+    }
+
+    /**
+     * Klavye modunu değiştir
+     * @param {boolean} enabled - Klavye modu aktif mi
+     */
+    toggleKeyboardMode(enabled) {
+        this.keyboardMode = enabled;
+        if (enabled) {
+            this.selectionCanvas.focus();
+            this.showStatus('Klavye modu aktif. Ok tuşları ile seçim yapın, Enter ile tamamlayın.');
+        } else {
+            this.showStatus('Fare/touch modu aktif.');
+        }
+    }
+
+    /**
+     * Eşleştirmeye geç
+     */
+    proceedToMatching() {
+        if (!this.selection) {
+            this.showError('Önce bir bölge seçin.');
+            return;
+        }
+        
+        this.showStep('matching');
+        this.startMatching();
+    }
+
+    /**
+     * Eşleştirmeyi başlat
+     */
+    async startMatching() {
+        try {
+            this.showProgress(0, 'Eşleştirme başlatılıyor...');
+            
+            const options = this.getMatchingOptions();
+            const result = await window.imageMatcher.match(
+                this.referenceImage,
+                this.targetImage,
+                this.selection,
+                options
+            );
+            
+            if (result.success) {
+                this.displayResult(result);
+            } else {
+                this.showError(`Eşleştirme başarısız: ${result.error}`);
+            }
+            
+        } catch (error) {
+            this.showError(`Eşleştirme hatası: ${error.message}`);
+        }
+    }
+
+    /**
+     * Eşleştirme seçeneklerini al
+     * @returns {Object} Seçenekler
+     */
+    getMatchingOptions() {
+        const scaleCount = parseInt(this.scaleCountSlider.value);
+        const scales = this.generateScales(scaleCount);
+        
+        return {
+            scales: scales,
+            threshold: parseInt(this.thresholdSlider.value) / 100,
+            targetSize: parseInt(this.targetSizeSlider.value),
+            enableRotation: this.rotationCheckbox.checked
+        };
+    }
+
+    /**
+     * Ölçek listesi oluştur
+     * @param {number} count - Ölçek sayısı
+     * @returns {Array} Ölçek listesi
+     */
+    generateScales(count) {
+        const scales = [];
+        for (let i = 0; i < count; i++) {
+            scales.push(0.5 + (i * 0.5) / (count - 1));
+        }
+        return scales;
+    }
+
+    /**
+     * Sonucu göster
+     * @param {Object} result - Eşleştirme sonucu
+     */
+    displayResult(result) {
+        const match = result.match;
+        
+        // Sonuç canvas'ını hazırla
+        const canvas = this.resultCanvas;
+        const image = this.targetImage;
+        
+        const maxWidth = 600;
+        const maxHeight = 400;
+        
+        const { width, height } = this.calculateDisplaySize(
+            image.width, 
+            image.height, 
+            maxWidth, 
+            maxHeight
+        );
+
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0, width, height);
+        
+        // Eşleşme dikdörtgenini çiz - tüm alanı kapsayacak şekilde
+        const scaleX = width / image.width;
+        const scaleY = height / image.height;
+        
+        // Dikdörtgenin tam boyutlarını hesapla
+        const rectX = match.x * scaleX;
+        const rectY = match.y * scaleY;
+        const rectWidth = match.width * scaleX;
+        const rectHeight = match.height * scaleY;
+        
+        this.matchRect.style.left = `${rectX}px`;
+        this.matchRect.style.top = `${rectY}px`;
+        this.matchRect.style.width = `${rectWidth}px`;
+        this.matchRect.style.height = `${rectHeight}px`;
+        
+        // Skor etiketini dikdörtgenin sağ üst köşesine yerleştir
+        const scoreX = rectX + rectWidth - 60; // Sağ kenardan 60px içeri
+        const scoreY = rectY + 5; // Üst kenardan 5px aşağı
+        
+        this.matchScore.style.left = `${scoreX}px`;
+        this.matchScore.style.top = `${scoreY}px`;
+        this.matchScore.style.right = 'auto';
+        
+        // Skor bilgilerini güncelle
+        const scorePercent = Math.round(match.score * 100);
+        this.matchScore.textContent = `${scorePercent}%`;
+        this.detailScore.textContent = `${scorePercent}%`;
+        this.detailLocation.textContent = `${match.x}, ${match.y}`;
+        this.detailTime.textContent = `${Math.round(match.processingTime)}ms`;
+        this.detailScale.textContent = `${match.scale.toFixed(2)}x`;
+        
+        this.resultContainer.style.display = 'block';
+        this.hideProgress();
+        
+        this.showStatus(`Eşleştirme tamamlandı. Benzerlik: ${scorePercent}%`);
+    }
+
+    /**
+     * Sonucu indir
+     */
+    downloadResult() {
+        const canvas = this.resultCanvas;
+        const link = document.createElement('a');
+        link.download = 'eslesme-sonucu.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+
+    /**
+     * Yeni eşleştirme başlat
+     */
+    startNewMatch() {
+        this.showStep('upload');
+        this.clearSelection();
+        this.resultContainer.style.display = 'none';
+        this.referenceImage = null;
+        this.targetImage = null;
+        
+        // File input'ları temizle
+        this.refFileInput.value = '';
+        this.targetFileInput.value = '';
+        this.refPreview.style.display = 'none';
+        this.targetPreview.style.display = 'none';
+    }
+
+    /**
+     * Adım göster
+     * @param {string} stepName - Adım adı
+     */
+    showStep(stepName) {
+        Object.values(this.steps).forEach(step => {
+            step.style.display = 'none';
+        });
+        
+        if (this.steps[stepName]) {
+            this.steps[stepName].style.display = 'block';
+        }
+        
+        this.currentStep = stepName;
+    }
+
+    /**
+     * Progress göster
+     * @param {number} percent - Yüzde
+     * @param {string} text - Açıklama
+     */
+    showProgress(percent, text) {
+        this.progressFill.style.width = `${percent}%`;
+        this.progressText.textContent = text;
+    }
+
+    /**
+     * Progress gizle
+     */
+    hideProgress() {
+        this.progressFill.style.width = '0%';
+        this.progressText.textContent = '';
+    }
+
+    /**
+     * Durum mesajı göster
+     * @param {string} message - Mesaj
+     */
+    showStatus(message) {
+        this.statusMessages.textContent = message;
+        this.statusMessages.classList.add('show');
+        
+        setTimeout(() => {
+            this.statusMessages.classList.remove('show');
+        }, 3000);
+    }
+
+    /**
+     * Durum mesajını gizle
+     */
+    hideStatus() {
+        this.statusMessages.classList.remove('show');
+    }
+
+    /**
+     * Hata mesajı göster
+     * @param {string} message - Hata mesajı
+     */
+    showError(message) {
+        this.errorMessages.textContent = message;
+        this.errorMessages.classList.add('show');
+        
+        setTimeout(() => {
+            this.errorMessages.classList.remove('show');
+        }, 5000);
+    }
+
+    /**
+     * Ayarları aç/kapat
+     */
+    toggleSettings() {
+        this.settingsPanel.classList.toggle('open');
+    }
+
+    /**
+     * Hedef boyutu güncelle
+     * @param {string} value - Değer
+     */
+    updateTargetSize(value) {
+        this.targetSizeValue.textContent = `${value}px`;
+    }
+
+    /**
+     * Ölçek sayısını güncelle
+     * @param {string} value - Değer
+     */
+    updateScaleCount(value) {
+        this.scaleCountValue.textContent = value;
+    }
+
+    /**
+     * Eşik değerini güncelle
+     * @param {string} value - Değer
+     */
+    updateThreshold(value) {
+        this.thresholdValue.textContent = `${value}%`;
+    }
+
+    /**
+     * API modunu değiştir
+     * @param {boolean} enabled - API modu aktif mi
+     */
+    toggleApiMode(enabled) {
+        this.apiSettings.style.display = enabled ? 'block' : 'none';
+    }
+
+    /**
+     * Ayarları yükle
+     */
+    loadSettings() {
+        const settings = JSON.parse(localStorage.getItem('imageMatcherSettings') || '{}');
+        
+        if (settings.targetSize) {
+            this.targetSizeSlider.value = settings.targetSize;
+            this.updateTargetSize(settings.targetSize);
+        }
+        
+        if (settings.scaleCount) {
+            this.scaleCountSlider.value = settings.scaleCount;
+            this.updateScaleCount(settings.scaleCount);
+        }
+        
+        if (settings.threshold) {
+            this.thresholdSlider.value = settings.threshold;
+            this.updateThreshold(settings.threshold);
+        }
+        
+        if (settings.rotationSupport) {
+            this.rotationCheckbox.checked = settings.rotationSupport;
+        }
+        
+        if (settings.apiMode) {
+            this.apiModeCheckbox.checked = settings.apiMode;
+            this.toggleApiMode(settings.apiMode);
+        }
+        
+        if (settings.apiUrl) {
+            this.apiUrlInput.value = settings.apiUrl;
+        }
+    }
+
+    /**
+     * Ayarları kaydet
+     */
+    saveSettings() {
+        const settings = {
+            targetSize: this.targetSizeSlider.value,
+            scaleCount: this.scaleCountSlider.value,
+            threshold: this.thresholdSlider.value,
+            rotationSupport: this.rotationCheckbox.checked,
+            apiMode: this.apiModeCheckbox.checked,
+            apiUrl: this.apiUrlInput.value
+        };
+        
+        localStorage.setItem('imageMatcherSettings', JSON.stringify(settings));
+    }
+}
+
+// Export
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = UIController;
+}

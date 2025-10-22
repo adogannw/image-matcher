@@ -1,0 +1,80 @@
+{
+  "name": "Görüntü Eşleştirici",
+  "short_name": "ImageMatcher",
+  "description": "Gizlilik odaklı, istemci tarafı görüntü eşleştirme uygulaması",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "photo"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%232563eb' rx='24'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='white'>🔍</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%232563eb' rx='64'/><text x='256' y='340' font-size='280' text-anchor='middle' fill='white'>🔍</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'><rect width='1280' height='720' fill='%23f8fafc'/><rect x='40' y='40' width='1200' height='640' fill='white' rx='8' stroke='%23e2e8f0' stroke-width='2'/><text x='640' y='380' font-size='48' text-anchor='middle' fill='%232563eb'>Görüntü Eşleştirici</text><text x='640' y='440' font-size='24' text-anchor='middle' fill='%2364748b'>Gizlilik odaklı, çevrimdışı çalışır</text></svg>",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "Ana ekran - Masaüstü görünümü"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 375 812'><rect width='375' height='812' fill='%23f8fafc'/><rect x='20' y='20' width='335' height='772' fill='white' rx='8' stroke='%23e2e8f0' stroke-width='2'/><text x='187.5' y='406' font-size='32' text-anchor='middle' fill='%232563eb'>Görüntü Eşleştirici</text><text x='187.5' y='450' font-size='16' text-anchor='middle' fill='%2364748b'>Mobil uyumlu</text></svg>",
+      "sizes": "375x812",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Ana ekran - Mobil görünümü"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Yeni Eşleştirme",
+      "short_name": "Yeni",
+      "description": "Yeni görüntü eşleştirmesi başlat",
+      "url": "/?action=new",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%232563eb' rx='12'/><text x='48' y='65' font-size='50' text-anchor='middle' fill='white'>➕</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Ayarlar",
+      "short_name": "Ayarlar",
+      "description": "Uygulama ayarlarını aç",
+      "url": "/?action=settings",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' fill='%2364748b' rx='12'/><text x='48' y='65' font-size='50' text-anchor='middle' fill='white'>⚙️</text></svg>",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}
