@@ -27,6 +27,7 @@ class UIController {
         this.steps = {
             upload: document.getElementById('step-upload'),
             selection: document.getElementById('step-selection'),
+            'target-upload': document.getElementById('step-target-upload'),
             matching: document.getElementById('step-matching')
         };
 
@@ -755,12 +756,19 @@ class UIController {
      * @param {string} stepName - Adım adı
      */
     showStep(stepName) {
+        console.log('showStep çağrıldı:', stepName, 'Mevcut adımlar:', Object.keys(this.steps));
+        
         Object.values(this.steps).forEach(step => {
-            step.style.display = 'none';
+            if (step) {
+                step.style.display = 'none';
+            }
         });
         
         if (this.steps[stepName]) {
             this.steps[stepName].style.display = 'block';
+            console.log('Adım gösterildi:', stepName);
+        } else {
+            console.error('Adım bulunamadı:', stepName);
         }
         
         this.currentStep = stepName;
