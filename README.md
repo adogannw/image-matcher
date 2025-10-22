@@ -144,9 +144,9 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosy
 
 ## 🔗 Bağlantılar
 
-- **GitHub**: [Proje Sayfası](https://github.com/username/image-matcher)
-- **Demo**: [Canlı Demo](https://username.github.io/image-matcher)
-- **Issues**: [Hata Bildirimi](https://github.com/username/image-matcher/issues)
+- **GitHub**: [Proje Sayfası](https://github.com/adogannw/image-matcher)
+- **Demo**: [Canlı Demo](https://adoganne.github.io/image-matcher)
+- **Issues**: [Hata Bildirimi](https://github.com/adogannw/image-matcher/issues)
 
 ## 📞 Destek
 
