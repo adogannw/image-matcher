@@ -251,18 +251,49 @@ input[type="file"] {
     border: 2px solid var(--primary-color);
     background: rgba(37, 99, 235, 0.1);
     pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+    transition: all 0.1s ease;
+}
+
+.selection-rect:hover {
+    border-color: var(--primary-hover);
+    background: rgba(29, 78, 216, 0.15);
 }
 
 .selection-info {
     position: absolute;
     top: 0.5rem;
     left: 0.5rem;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 0.5rem;
+    padding: 0.75rem;
     border-radius: var(--radius);
     font-size: 0.875rem;
     font-family: monospace;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+}
+
+.selection-info .info-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+}
+
+.selection-info .info-line:last-child {
+    margin-bottom: 0;
+}
+
+.selection-info .label {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.selection-info .value {
+    color: #f1f5f9;
+    font-weight: 600;
 }
 
 .selection-controls {

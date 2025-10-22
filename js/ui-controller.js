@@ -42,8 +42,10 @@ class UIController {
         this.selectionCanvas = document.getElementById('selection-canvas');
         this.selectionRect = document.getElementById('selection-rect');
         this.selectionInfo = document.getElementById('selection-info');
-        this.selectionCoords = document.getElementById('selection-coords');
+        this.selectionStart = document.getElementById('selection-start');
+        this.selectionEnd = document.getElementById('selection-end');
         this.selectionSize = document.getElementById('selection-size');
+        this.selectionArea = document.getElementById('selection-area');
         this.keyboardModeCheckbox = document.getElementById('keyboard-mode');
         this.clearSelectionBtn = document.getElementById('clear-selection');
         this.autoSelectBtn = document.getElementById('auto-select');
@@ -437,8 +439,11 @@ class UIController {
         this.selectionRect.style.width = `${width * scaleX}px`;
         this.selectionRect.style.height = `${height * scaleY}px`;
         
-        this.selectionCoords.textContent = `${Math.round(x)},${Math.round(y)} - ${Math.round(x + width)},${Math.round(y + height)}`;
-        this.selectionSize.textContent = `${Math.round(width)}×${Math.round(height)}`;
+        // Detaylı bilgi güncelle
+        this.selectionStart.textContent = `${Math.round(x)}, ${Math.round(y)}`;
+        this.selectionEnd.textContent = `${Math.round(x + width)}, ${Math.round(y + height)}`;
+        this.selectionSize.textContent = `${Math.round(width)} × ${Math.round(height)}`;
+        this.selectionArea.textContent = `${Math.round(width * height)} px²`;
     }
 
     /**
@@ -452,8 +457,13 @@ class UIController {
         const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
         const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
         
-        if (width < 10 || height < 10) {
-            this.showError('Seçim çok küçük. En az 10×10 piksel seçin.');
+        if (width < 20 || height < 20) {
+            this.showError('Seçim çok küçük. En az 20×20 piksel seçin.');
+            return;
+        }
+        
+        if (width > this.referenceImage.width * 0.8 || height > this.referenceImage.height * 0.8) {
+            this.showError('Seçim çok büyük. Görselin %80\'inden küçük bir alan seçin.');
             return;
         }
         
@@ -472,8 +482,10 @@ class UIController {
         this.selectionRect.style.width = '0px';
         this.selectionRect.style.height = '0px';
         this.proceedBtn.disabled = true;
-        this.selectionCoords.textContent = '0,0 - 0,0';
-        this.selectionSize.textContent = '0×0';
+        this.selectionStart.textContent = '0, 0';
+        this.selectionEnd.textContent = '0, 0';
+        this.selectionSize.textContent = '0 × 0';
+        this.selectionArea.textContent = '0 px²';
     }
 
     /**
@@ -483,7 +495,7 @@ class UIController {
         const image = this.referenceImage;
         const centerX = image.width / 2;
         const centerY = image.height / 2;
-        const size = Math.min(image.width, image.height) * 0.3;
+        const size = Math.min(image.width, image.height) * 0.2; // Daha küçük seçim
         
         this.selectionStart = {
             x: centerX - size / 2,
@@ -494,6 +506,7 @@ class UIController {
             y: centerY + size / 2
         };
         
+        this.updateSelectionDisplay();
         this.finalizeSelection();
     }
 
