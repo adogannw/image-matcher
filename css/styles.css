@@ -253,6 +253,7 @@ input[type="file"] {
     pointer-events: none;
     box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
     transition: all 0.1s ease;
+    z-index: 10;
 }
 
 .selection-rect:hover {
@@ -274,7 +275,7 @@ input[type="file"] {
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     min-width: 200px;
-    z-index: 5;
+    z-index: 1;
 }
 
 .selection-info .info-line {
