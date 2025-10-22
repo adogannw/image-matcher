@@ -156,22 +156,28 @@
                     
                     <div class="result-details">
                         <h3>Sonuç Detayları</h3>
+                        
+                        <div class="similarity-controls">
+                            <label for="similarity-slider">Benzerlik Eşiği:</label>
+                            <div class="slider-container">
+                                <input type="range" id="similarity-slider" min="30" max="95" value="60" class="slider">
+                                <span id="similarity-value">60%</span>
+                            </div>
+                            <button id="filter-matches" class="button secondary">Benzerleri Filtrele</button>
+                        </div>
+                        
                         <div class="detail-grid">
                             <div class="detail-item">
-                                <span class="detail-label">Benzerlik Skoru:</span>
-                                <span class="detail-value" id="detail-score">0%</span>
+                                <span class="detail-label">Bulunan Eşleşme:</span>
+                                <span class="detail-value" id="detail-count">0</span>
                             </div>
                             <div class="detail-item">
-                                <span class="detail-label">Bulunan Konum:</span>
-                                <span class="detail-value" id="detail-location">0, 0</span>
+                                <span class="detail-label">En İyi Benzerlik:</span>
+                                <span class="detail-value" id="detail-score">0%</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">İşlem Süresi:</span>
                                 <span class="detail-value" id="detail-time">0ms</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Kullanılan Ölçek:</span>
-                                <span class="detail-value" id="detail-scale">1.0x</span>
                             </div>
                         </div>
                         

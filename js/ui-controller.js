@@ -60,9 +60,11 @@ class UIController {
         this.resultContainer = document.getElementById('result-container');
         this.resultCanvas = document.getElementById('result-canvas');
         this.detailScore = document.getElementById('detail-score');
-        this.detailLocation = document.getElementById('detail-location');
+        this.detailCount = document.getElementById('detail-count');
         this.detailTime = document.getElementById('detail-time');
-        this.detailScale = document.getElementById('detail-scale');
+        this.similaritySlider = document.getElementById('similarity-slider');
+        this.similarityValue = document.getElementById('similarity-value');
+        this.filterMatchesBtn = document.getElementById('filter-matches');
         this.downloadBtn = document.getElementById('download-result');
         this.newMatchBtn = document.getElementById('new-match');
 
@@ -118,6 +120,12 @@ class UIController {
         // Result buttons
         this.downloadBtn.addEventListener('click', () => this.downloadResult());
         this.newMatchBtn.addEventListener('click', () => this.startNewMatch());
+        
+        // Similarity controls
+        this.similaritySlider.addEventListener('input', (e) => {
+            this.similarityValue.textContent = `${e.target.value}%`;
+        });
+        this.filterMatchesBtn.addEventListener('click', () => this.filterMatches());
 
         // Settings events
         this.settingsToggle.addEventListener('click', () => this.toggleSettings());
@@ -635,7 +643,7 @@ class UIController {
         
         return {
             scales: scales,
-            threshold: parseInt(this.thresholdSlider.value) / 100,
+            threshold: 0.3, // Daha düşük eşik değeri (30%) - daha fazla benzer eşleşme bulmak için
             targetSize: parseInt(this.targetSizeSlider.value),
             enableRotation: this.rotationCheckbox.checked
         };
@@ -741,14 +749,110 @@ class UIController {
         // En iyi eşleşme için detay bilgilerini güncelle
         const scorePercent = Math.round(bestMatch.score * 100);
         this.detailScore.textContent = `${scorePercent}%`;
-        this.detailLocation.textContent = `${bestMatch.x}, ${bestMatch.y}`;
+        this.detailCount.textContent = `${matches.length}`;
         this.detailTime.textContent = `${Math.round(bestMatch.processingTime)}ms`;
-        this.detailScale.textContent = `${bestMatch.scale.toFixed(2)}x`;
+        
+        // Tüm eşleşmeleri sakla
+        this.allMatches = matches;
         
         this.resultContainer.style.display = 'block';
         this.hideProgress();
         
-        this.showStatus(`Eşleştirme tamamlandı. Benzerlik: ${scorePercent}%`);
+        this.showStatus(`Eşleştirme tamamlandı. ${matches.length} eşleşme bulundu. En iyi benzerlik: ${scorePercent}%`);
+    }
+
+    /**
+     * Benzerlik eşiğine göre eşleşmeleri filtrele
+     */
+    filterMatches() {
+        if (!this.allMatches) {
+            this.showError('Filtrelenecek eşleşme bulunamadı.');
+            return;
+        }
+        
+        const threshold = parseInt(this.similaritySlider.value) / 100;
+        const filteredMatches = this.allMatches.filter(match => match.score >= threshold);
+        
+        console.log(`Filtreleme: ${this.allMatches.length} -> ${filteredMatches.length} eşleşme (eşik: ${threshold})`);
+        
+        // Canvas'ı yeniden çiz
+        this.drawMatches(filteredMatches);
+        
+        // Detay bilgilerini güncelle
+        if (filteredMatches.length > 0) {
+            const bestMatch = filteredMatches.reduce((best, current) => 
+                current.score > best.score ? current : best
+            );
+            const scorePercent = Math.round(bestMatch.score * 100);
+            this.detailScore.textContent = `${scorePercent}%`;
+            this.detailCount.textContent = `${filteredMatches.length}`;
+        } else {
+            this.detailScore.textContent = '0%';
+            this.detailCount.textContent = '0';
+        }
+        
+        this.showStatus(`${filteredMatches.length} eşleşme gösteriliyor (eşik: ${this.similaritySlider.value}%)`);
+    }
+
+    /**
+     * Eşleşmeleri canvas üzerinde çiz
+     */
+    drawMatches(matches) {
+        const canvas = this.resultCanvas;
+        const image = this.targetImage;
+        
+        if (!canvas || !image) return;
+        
+        const ctx = canvas.getContext('2d');
+        const maxWidth = 600;
+        const maxHeight = 400;
+        
+        const { width, height } = this.calculateDisplaySize(
+            image.width, 
+            image.height, 
+            maxWidth, 
+            maxHeight
+        );
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(image, 0, 0, width, height);
+        
+        const scaleX = width / image.width;
+        const scaleY = height / image.height;
+        
+        // En iyi eşleşmeyi bul
+        const bestMatch = matches.length > 0 ? matches.reduce((best, current) => 
+            current.score > best.score ? current : best
+        ) : null;
+        
+        // Tüm eşleşmeleri çiz
+        matches.forEach((match) => {
+            const rectX = match.x * scaleX;
+            const rectY = match.y * scaleY;
+            const rectWidth = match.width * scaleX;
+            const rectHeight = match.height * scaleY;
+            
+            // Dikdörtgen çiz
+            ctx.strokeStyle = match === bestMatch ? '#dc2626' : '#6b7280';
+            ctx.lineWidth = match === bestMatch ? 3 : 2;
+            ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+            
+            // Skor etiketi çiz (sağ alt köşede)
+            const scorePercent = Math.round(match.score * 100);
+            const scoreX = rectX + rectWidth - 5;
+            const scoreY = rectY + rectHeight - 5;
+            
+            // Arka plan
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            const textWidth = ctx.measureText(`${scorePercent}%`).width + 8;
+            ctx.fillRect(scoreX - textWidth, scoreY - 16, textWidth, 16);
+            
+            // Metin
+            ctx.fillStyle = 'white';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${scorePercent}%`, scoreX - textWidth + 4, scoreY - 4);
+        });
     }
 
     /**
