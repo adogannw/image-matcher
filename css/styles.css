@@ -216,6 +216,22 @@ input[type="file"] {
     align-items: start;
 }
 
+.selection-info-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    min-width: 250px;
+}
+
+.selection-info-panel h3 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
 .selection-canvas-wrapper {
     position: relative;
     display: inline-block;
@@ -262,20 +278,16 @@ input[type="file"] {
 }
 
 .selection-info {
-    position: absolute;
-    bottom: 0.5rem;
-    left: 0.5rem;
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 0.75rem;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0;
     border-radius: var(--radius);
     font-size: 0.875rem;
     font-family: monospace;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    min-width: 200px;
-    z-index: 1;
+    border: none;
+    box-shadow: none;
+    min-width: auto;
+    z-index: auto;
 }
 
 .selection-info .info-line {
@@ -674,12 +686,14 @@ input[type="file"] {
         max-height: 250px;
     }
     
-    .selection-info {
-        bottom: 0.25rem;
-        left: 0.25rem;
-        padding: 0.5rem;
-        font-size: 0.75rem;
-        min-width: 150px;
+    .selection-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .selection-info-panel {
+        min-width: auto;
+        padding: 1rem;
     }
 }
 

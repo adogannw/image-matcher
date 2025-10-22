@@ -53,7 +53,7 @@
         <section class="step" id="step-selection" style="display: none;" aria-labelledby="selection-heading">
             <h2 id="selection-heading">2. Eşleştirilecek Bölgeyi Seçin</h2>
             
-            <div class="selection-container">
+                <div class="selection-container">
                 <div class="selection-canvas-wrapper">
                     <canvas id="selection-canvas" 
                             role="img" 
@@ -61,23 +61,27 @@
                             tabindex="0"></canvas>
                     <div class="selection-overlay" id="selection-overlay">
                         <div class="selection-rect" id="selection-rect"></div>
-                        <div class="selection-info" id="selection-info">
-                            <div class="info-line">
-                                <span class="label">Başlangıç:</span>
-                                <span class="value" id="selection-start">0, 0</span>
-                            </div>
-                            <div class="info-line">
-                                <span class="label">Bitiş:</span>
-                                <span class="value" id="selection-end">0, 0</span>
-                            </div>
-                            <div class="info-line">
-                                <span class="label">Boyut:</span>
-                                <span class="value" id="selection-size">0 × 0</span>
-                            </div>
-                            <div class="info-line">
-                                <span class="label">Alan:</span>
-                                <span class="value" id="selection-area">0 px²</span>
-                            </div>
+                    </div>
+                </div>
+                
+                <div class="selection-info-panel">
+                    <h3>Seçim Bilgileri</h3>
+                    <div class="selection-info" id="selection-info">
+                        <div class="info-line">
+                            <span class="label">Başlangıç:</span>
+                            <span class="value" id="selection-start">0, 0</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="label">Bitiş:</span>
+                            <span class="value" id="selection-end">0, 0</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="label">Boyut:</span>
+                            <span class="value" id="selection-size">0 × 0</span>
+                        </div>
+                        <div class="info-line">
+                            <span class="label">Alan:</span>
+                            <span class="value" id="selection-area">0 px²</span>
                         </div>
                     </div>
                 </div>
@@ -92,6 +96,7 @@
                     <div class="control-group">
                         <button id="clear-selection" class="button secondary">Seçimi Temizle</button>
                         <button id="auto-select" class="button secondary">Merkez Seçim</button>
+                        <button id="select-all" class="button secondary">Hepsini Seç</button>
                     </div>
                     
                     <div class="control-group">

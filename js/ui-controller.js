@@ -49,6 +49,7 @@ class UIController {
         this.keyboardModeCheckbox = document.getElementById('keyboard-mode');
         this.clearSelectionBtn = document.getElementById('clear-selection');
         this.autoSelectBtn = document.getElementById('auto-select');
+        this.selectAllBtn = document.getElementById('select-all');
         this.proceedToTargetBtn = document.getElementById('proceed-to-target');
         this.startMatchingBtn = document.getElementById('start-matching');
 
@@ -111,6 +112,7 @@ class UIController {
         // Control buttons
         this.clearSelectionBtn.addEventListener('click', () => this.clearSelection());
         this.autoSelectBtn.addEventListener('click', () => this.autoSelect());
+        this.selectAllBtn.addEventListener('click', () => this.selectAll());
         this.proceedToTargetBtn.addEventListener('click', () => this.proceedToTargetUpload());
         this.startMatchingBtn.addEventListener('click', () => this.startMatching());
 
@@ -511,6 +513,25 @@ class UIController {
         this.selectionEnd = {
             x: centerX + size / 2,
             y: centerY + size / 2
+        };
+        
+        this.updateSelectionDisplay();
+        this.finalizeSelection();
+    }
+
+    /**
+     * Tüm görseli seç
+     */
+    selectAll() {
+        const image = this.referenceImage;
+        
+        this.selectionStart = {
+            x: 0,
+            y: 0
+        };
+        this.selectionEnd = {
+            x: image.width,
+            y: image.height
         };
         
         this.updateSelectionDisplay();
