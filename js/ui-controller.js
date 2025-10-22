@@ -290,8 +290,11 @@ class UIController {
      * Hedef görsel yükleme adımına geç
      */
     proceedToTargetUpload() {
+        console.log('proceedToTargetUpload çağrıldı, selection:', this.selection);
         if (this.selection) {
             this.showStep('target-upload');
+        } else {
+            this.showError('Önce bir bölge seçmelisiniz.');
         }
     }
 
@@ -338,6 +341,11 @@ class UIController {
      */
     startSelection(event) {
         if (this.keyboardMode) return;
+        
+        if (!this.referenceImage) {
+            console.error('Reference image bulunamadı');
+            return;
+        }
         
         event.preventDefault();
         this.isSelecting = true;
@@ -470,12 +478,19 @@ class UIController {
      * Seçimi tamamla
      */
     finalizeSelection() {
-        if (!this.selectionStart || !this.selectionEnd) return;
+        console.log('finalizeSelection çağrıldı:', { selectionStart: this.selectionStart, selectionEnd: this.selectionEnd });
+        
+        if (!this.selectionStart || !this.selectionEnd) {
+            console.log('Selection start veya end bulunamadı');
+            return;
+        }
         
         const x = Math.min(this.selectionStart.x, this.selectionEnd.x);
         const y = Math.min(this.selectionStart.y, this.selectionEnd.y);
         const width = Math.abs(this.selectionEnd.x - this.selectionStart.x);
         const height = Math.abs(this.selectionEnd.y - this.selectionStart.y);
+        
+        console.log('Seçim boyutları:', { x, y, width, height });
         
         if (width < 20 || height < 20) {
             this.showError('Seçim çok küçük. En az 20×20 piksel seçin.');
