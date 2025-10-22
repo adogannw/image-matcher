@@ -2,13 +2,13 @@
   "name": "image-matcher",
   "version": "1.0.0",
   "description": "Gizlilik odaklı, istemci tarafı görüntü eşleştirme uygulaması",
-  "main": "public/index.html",
+  "main": "index.html",
   "scripts": {
-    "start": "http-server public -p 8080 -o",
-    "dev": "http-server public -p 8080 -o --cors",
+    "start": "http-server . -p 8080 -o",
+    "dev": "http-server . -p 8080 -o --cors",
     "test": "echo \"Tests are run in browser\" && exit 0",
     "build": "echo \"No build step required for vanilla JS\" && exit 0",
-    "deploy": "gh-pages -d public"
+    "deploy": "gh-pages -d ."
   },
   "keywords": [
     "image-matching",
