@@ -612,6 +612,7 @@ class UIController {
             );
             
             if (result.success) {
+                this.showStep('matching');
                 this.displayResult(result);
             } else {
                 this.showError(`Eşleştirme başarısız: ${result.error}`);
@@ -664,11 +665,27 @@ class UIController {
      * @param {Object} result - Eşleştirme sonucu
      */
     displayResult(result) {
+        console.log('displayResult çağrıldı:', result);
         const match = result.match;
+        
+        if (!match) {
+            console.error('Match bulunamadı:', result);
+            return;
+        }
         
         // Sonuç canvas'ını hazırla
         const canvas = this.resultCanvas;
         const image = this.targetImage;
+        
+        if (!canvas) {
+            console.error('Result canvas bulunamadı');
+            return;
+        }
+        
+        if (!image) {
+            console.error('Target image bulunamadı');
+            return;
+        }
         
         const maxWidth = 600;
         const maxHeight = 400;
